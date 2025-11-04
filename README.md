@@ -1,3 +1,191 @@
+***************************************************************
+THIS IS HADI SETUP to install that worked
+***************************************************************
+
+
+# 🚀 Livox MID-360 ROS 2 (Humble) Setup Tutorial
+
+## 1️⃣ Prerequisites
+- Ubuntu 22.04 + ROS 2 Humble  
+- MID-360 connected via Ethernet  
+- Internet access for cloning & installing
+
+---
+
+## 2️⃣ Network setup
+
+### 🔹 LiDAR default IP
+- **LiDAR (MID-360):** `192.168.1.100`
+- **Data ports:**  
+  - Command: `56100`  
+  - Message: `56200`  
+  - Point cloud: `56300`  
+  - IMU: `56400`  
+  - Log: `56500`
+
+### 🔹 Host (your PC)
+Assign your PC a static IP **on the same subnet**, e.g.:
+
+```bash
+sudo ip addr add 192.168.1.50/24 dev eth0
+```
+or set it via your network settings GUI.  
+You should be able to **ping** the LiDAR:
+
+```bash
+ping 192.168.1.100
+```
+
+---
+
+## 3️⃣ Create and prepare a ROS 2 workspace
+
+```bash
+mkdir -p ~/QR_Sync/ros2_ws/src
+cd ~/QR_Sync/ros2_ws/src
+```
+
+---
+
+## 4️⃣ Clone the Livox ROS 2 driver
+
+```bash
+git clone https://github.com/Livox-SDK/livox_ros_driver2.git
+cd livox_ros_driver2
+mv package_ROS2.xml package.xml     # rename for ROS 2 build
+```
+
+---
+
+## 5️⃣ Build cleanly
+
+```bash
+cd ~/QR_Sync/ros2_ws
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install
+```
+
+If you ever move folders or get “source directory mismatch” errors:
+```bash
+rm -rf build/ install/ log/
+colcon build --symlink-install --cmake-clean-cache
+```
+
+---
+
+## 6️⃣ Configure the MID-360 connection
+
+Open:
+```bash
+~/QR_Sync/ros2_ws/src/livox_ros_driver2/config/MID360_config.json
+```
+
+Set your host IP and the LiDAR’s IP:
+```json
+{
+  "lidar_summary_info": {
+    "lidar_type": 8
+  },
+  "MID360": {
+    "lidar_net_info": {
+      "cmd_data_port": 56100,
+      "push_msg_port": 56200,
+      "point_data_port": 56300,
+      "imu_data_port": 56400,
+      "log_data_port": 56500
+    },
+    "host_net_info": {
+      "host_ip": "192.168.1.50",
+      "cmd_data_port": 56101,
+      "push_msg_port": 56201,
+      "point_data_port": 56301,
+      "imu_data_port": 56401,
+      "log_data_port": 56501
+    }
+  }
+}
+```
+
+*(Adjust ports if needed — just don’t overlap.)*
+
+---
+
+## 7️⃣ Run the driver
+
+```bash
+source ~/QR_Sync/ros2_ws/install/setup.bash
+ros2 launch livox_ros_driver2 rviz_MID360_launch.py
+```
+
+- RViz should open with a live point cloud.  
+- If not, check your network and `config/MID360_config.json`.
+
+---
+
+## 8️⃣ Optional tools
+- To record data:  
+  ```bash
+  ros2 bag record /livox/lidar /livox/imu
+  ```
+- To visualize only:  
+  ```bash
+  ros2 launch livox_ros_driver2 msg_MID360_launch.py
+  ```
+
+---
+
+## 💡 Quick reset checklist (if build issues occur)
+1. `rm -rf build/ install/ log/`
+2. `rm -rf ~/.colcon ~/.cache/colcon`
+3. Ensure `package.xml` exists in driver root.
+4. Rebuild with `colcon build --symlink-install`.
+
+---
+
+## 🧭 Fork & Push to Your GitHub
+
+1. Fork the original repo on GitHub:  
+   Go to [Livox-SDK/livox_ros_driver2](https://github.com/Livox-SDK/livox_ros_driver2) → click **Fork**.
+
+2. Clone your fork:
+   ```bash
+   git clone https://github.com/<your-username>/livox_ros_driver2.git
+   ```
+
+3. Add this markdown guide:
+   ```bash
+   cp ~/QR_Sync/ros2_ws/MID360_ROS2_SETUP.md ~/QR_Sync/ros2_ws/src/livox_ros_driver2/
+   cd ~/QR_Sync/ros2_ws/src/livox_ros_driver2
+   git add MID360_ROS2_SETUP.md
+   git commit -m "Add setup tutorial for Livox MID-360 on ROS2 Humble"
+   git push origin main
+   ```
+
+4. Optionally keep Livox upstream synced:
+   ```bash
+   git remote add upstream https://github.com/Livox-SDK/livox_ros_driver2.git
+   git fetch upstream
+   git merge upstream/main
+   git push origin main
+   ```
+
+---
+
+**✅ Done!**  
+You now have a working Livox MID-360 setup + GitHub backup of your own configuration notes.
+
+
+
+
+
+
+
+
+
+
+
+***************************************************************
+
 # Livox ROS Driver 2
 
 Livox ROS Driver 2 is the 2nd-generation driver package used to connect LiDAR products produced by Livox, applicable for ROS (noetic recommended) and ROS2 (foxy or humble recommended).
